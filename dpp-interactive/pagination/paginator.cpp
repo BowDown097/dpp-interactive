@@ -33,15 +33,15 @@ namespace dpp
         return *this;
     }
 
-    paginator& paginator::set_options(const std::map<const char*, paginator_action>& opts)
+    paginator& paginator::set_options(std::span<std::pair<const char*, paginator_action>> opts)
     {
-        options = opts;
+        options.assign(opts.begin(), opts.end());
         return *this;
     }
 
     paginator& paginator::add_option(const char* emote, paginator_action action)
     {
-        options.emplace(emote, action);
+        options.push_back(std::make_pair(emote, action));
         return *this;
     }
 

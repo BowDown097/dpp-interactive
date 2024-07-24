@@ -1,8 +1,8 @@
 #pragma once
-#include <map>
 #include <set>
 #include <span>
 #include <string_view>
+#include <vector>
 
 #define DEFAULT_PAGINATOR_OVERRIDES(paginator_type) \
     paginator_type& set_footer(dpp::paginator_footer f) final \
@@ -13,7 +13,7 @@
     { dpp::paginator::set_users(user_ids); return *this; } \
     paginator_type& add_user(snowflake user_id) final \
     { dpp::paginator::add_user(user_id); return *this; } \
-    paginator_type& set_options(const std::map<const char*, dpp::paginator_action>& opts) final \
+    paginator_type& set_options(std::span<std::pair<const char*, paginator_action>> opts) final \
     { dpp::paginator::set_options(opts); return *this; } \
     paginator_type& add_option(const char* emote, dpp::paginator_action action) final \
     { dpp::paginator::add_option(emote, action); return *this; } \
@@ -55,7 +55,7 @@ namespace dpp
         virtual paginator& set_start_page_index(int index);
         virtual paginator& set_users(std::span<const snowflake> user_ids);
         virtual paginator& add_user(snowflake user_id);
-        virtual paginator& set_options(const std::map<const char*, paginator_action>& opts);
+        virtual paginator& set_options(std::span<std::pair<const char*, paginator_action>> opts);
         virtual paginator& add_option(const char* emote, paginator_action action);
         virtual paginator& with_default_buttons();
 
@@ -72,7 +72,7 @@ namespace dpp
         bool should_disable(paginator_action action, bool disable_all) const;
     protected:
         paginator_footer footer = paf_page_number;
-        std::map<const char*, paginator_action> options;
+        std::vector<std::pair<const char*, paginator_action>> options;
         int start_page_index{};
         std::set<snowflake> user_ids;
 

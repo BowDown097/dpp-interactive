@@ -1,18 +1,27 @@
 #include "interactiveservice.h"
-#include "pagination/interactionpage.h"
-#include <dpp/cluster.h>
+#include <dpp/dispatcher.h>
+#include <dpp/restresults.h>
+
+// https://stackoverflow.com/a/20846873
+// hellish workaround, but it works. required for send_paginator callback below
+template<class F>
+auto make_copyable_function(F&& f)
+{
+    using dF = std::decay_t<F>;
+    auto spf = std::make_shared<dF>(std::forward<F>(f));
+    return [spf](auto&&... args) -> decltype(auto) {
+        return (*spf)(decltype(args)(args)...);
+    };
+}
 
 namespace dpp
 {
-    interactive_service::interactive_service(dpp::cluster* cluster, interactive_service_config config)
-        : check_thread(std::make_unique<std::jthread>(&interactive_service::check_data_map, this)),
-          cluster(cluster),
-          config(config) {}
+    interactive_service::interactive_service(interactive_service_config config)
+        : check_thread(std::make_unique<std::jthread>(&interactive_service::check_data_map, this)), config(config) {}
 
-    void interactive_service::check_data_map()
+    void interactive_service::check_data_map(std::stop_token stopToken)
     {
-        std::stop_token st = check_thread->get_stop_token();
-        while (!st.stop_requested())
+        while (!stopToken.stop_requested())
         {
             std::this_thread::sleep_for(std::chrono::seconds(1));
             std::erase_if(data_map, [](const auto& data_pair) {
@@ -21,76 +30,61 @@ namespace dpp
         }
     }
 
-    TASK(void) interactive_service::handle_button_click(const button_click_t& event)
+    void interactive_service::handle_button_click(const button_click_t& event)
     {
         if (!data_map.contains(event.command.message_id))
         {
             event.reply("This interaction has expired.");
-            RETURN_NO_VALUE;
+            return;
         }
 
         interactive_data& data = data_map[event.command.message_id];
         if (!data.paginator->is_interactor(event.command.get_issuing_user().id))
         {
             event.reply("You do not have permission to interact with this message.");
-            RETURN_NO_VALUE;
+            return;
         }
 
-        event.reply();
         data.paginator->handle_button_click(event);
-        AWAIT(send_or_modify(data.paginator.get(), event.command.channel_id, data.message.get()));
+        event.reply(ir_update_message, message_for(data.paginator.get(), event.command.channel_id));
 
         if (data.reset_timeout_on_input)
             data.timeout_point = std::chrono::steady_clock::now() + data.timeout_secs;
-
-        RETURN_NO_VALUE;
     }
 
-    TASK(message) interactive_service::send_or_modify(paginator* paginator, snowflake channel_id, message* msg)
+    message interactive_service::message_for(paginator* paginator, snowflake channel_id)
     {
         component comp = paginator->get_component(false);
         embed embed = paginator->embed_for(paginator->current_page_index());
 
-        if (msg)
-        {
-            if (!comp.components.empty())
-                msg->components = { comp };
-
-            msg->embeds = { embed};
-
-#ifdef DPP_CORO
-            co_await cluster->co_message_edit(*msg);
-#else
-            m_cluster->message_edit(*msg);
-#endif
-
-            RETURN(*msg);
-        }
-
-        message out_msg(channel_id, embed);
+        message out(channel_id, embed);
         if (!comp.components.empty())
-            out_msg.components = { comp };
+            out.components.push_back(comp);
 
-#ifdef DPP_CORO
-        confirmation_callback_t conf = co_await cluster->co_message_create(out_msg);
-        co_return conf.get<message>();
-#else
-        return m_cluster->message_create_sync(out_msg);
-#endif
+        return out;
     }
 
-    TASK(void) interactive_service::send_paginator(std::unique_ptr<paginator> paginator, snowflake channel_id,
-                                                   bool reset_timeout_on_input, std::chrono::seconds timeout)
+    void interactive_service::send_paginator(std::unique_ptr<paginator> paginator, const message_create_t& event,
+                                             bool reset_timeout_on_input, std::chrono::seconds timeout)
     {
-        message msg = AWAIT(send_or_modify(paginator.get(), channel_id));
-        std::chrono::seconds timeout_secs = timeout.count() > 0 ? timeout : config.default_timeout;
+        dpp::message msg = message_for(paginator.get(), event.msg.channel_id);
+        event.reply(msg, false, make_copyable_function(
+                    [paginator = std::move(paginator), reset_timeout_on_input, timeout, this]
+                    (const confirmation_callback_t& conf) mutable
+        {
+            if (conf.is_error())
+            {
+                utility::log_error()(conf);
+                return;
+            }
 
-        data_map.emplace(std::piecewise_construct, std::forward_as_tuple(msg.id),
-            std::forward_as_tuple(
-                std::make_unique<message>(std::move(msg)),
-                std::move(paginator),
-                reset_timeout_on_input,
-                std::chrono::steady_clock::now() + timeout_secs,
-                timeout_secs));
+            std::chrono::seconds timeout_secs = timeout.count() > 0 ? timeout : config.default_timeout;
+            data_map[conf.get<message>().id] = interactive_data {
+                .paginator = std::move(paginator),
+                .reset_timeout_on_input = reset_timeout_on_input,
+                .timeout_point = std::chrono::steady_clock::now() + timeout_secs,
+                .timeout_secs = timeout_secs
+            };
+        }));
     }
 }

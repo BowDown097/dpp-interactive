@@ -1,7 +1,6 @@
 #pragma once
 #include "paginator.h"
 #include <memory>
-#include <vector>
 
 namespace dpp
 {
