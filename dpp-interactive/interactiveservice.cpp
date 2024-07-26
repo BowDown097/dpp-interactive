@@ -1,6 +1,5 @@
 #include "interactiveservice.h"
-#include <dpp/dispatcher.h>
-#include <dpp/restresults.h>
+#include <dpp/cluster.h>
 
 // https://stackoverflow.com/a/20846873
 // hellish workaround, but it works. required for send_paginator callback below
@@ -52,6 +51,24 @@ namespace dpp
             data.timeout_point = std::chrono::steady_clock::now() + data.timeout_secs;
     }
 
+#ifdef DPP_CORO
+    void interactive_service::handle_message_create(const message_create_t& event)
+    {
+        for (entity_filter_data_base* filter : entity_filters)
+        {
+            using MessageCallback = entity_filter_callback<const message&>;
+            if (MessageCallback* callback = dynamic_cast<MessageCallback*>(filter->cb.get()))
+            {
+                if (callback->func(event.msg))
+                {
+                    filter->set_result(&event.msg);
+                    filter->cv.notify_one();
+                }
+            }
+        }
+    }
+#endif
+
     message interactive_service::message_for(paginator* paginator, snowflake channel_id)
     {
         component comp = paginator->get_component(false);
@@ -86,5 +103,13 @@ namespace dpp
                 .timeout_secs = timeout_secs
             };
         }));
+    }
+
+    void interactive_service::setup_event_handlers(cluster* cluster)
+    {
+        cluster->on_button_click(std::bind(&interactive_service::handle_button_click, this, std::placeholders::_1));
+#ifdef DPP_CORO
+        cluster->on_message_create(std::bind(&interactive_service::handle_message_create, this, std::placeholders::_1));
+#endif
     }
 }
