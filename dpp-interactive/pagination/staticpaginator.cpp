@@ -18,16 +18,10 @@ namespace dpp
 
     embed static_paginator::embed_for(int page_index)
     {
-        interaction_page& page = pages.at(page_index);
-        return gen_page_embed(page);
+        return gen_page_embed(pages.at(page_index));
     }
 
-    const interaction_page& static_paginator::get_or_load_current_page() const
-    {
-        return get_or_load_page(current_page_index());
-    }
-
-    const interaction_page& static_paginator::get_or_load_page(int page_index) const
+    interaction_page static_paginator::get_or_load_page(int page_index) const
     {
         return pages.at(page_index);
     }

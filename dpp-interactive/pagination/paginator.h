@@ -60,8 +60,8 @@ namespace dpp
         virtual paginator& with_default_buttons();
 
         virtual embed embed_for(int page_index) = 0;
-        virtual const interaction_page& get_or_load_current_page() const = 0;
-        virtual const interaction_page& get_or_load_page(int page_index) const = 0;
+        virtual interaction_page get_or_load_current_page() const;
+        virtual interaction_page get_or_load_page(int page_index) const = 0;
         virtual void handle_button_click(const button_click_t& event);
         virtual int max_page_index() const = 0;
 

@@ -100,6 +100,11 @@ namespace dpp
         return out;
     }
 
+    interaction_page paginator::get_or_load_current_page() const
+    {
+        return get_or_load_page(m_current_page_index);
+    }
+
     void paginator::handle_button_click(const button_click_t& event)
     {
         paginator_action action = id_to_action(event.custom_id);
