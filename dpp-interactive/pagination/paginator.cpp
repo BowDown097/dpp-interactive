@@ -114,9 +114,10 @@ namespace dpp
     void paginator::handle_button_click(const button_click_t& event)
     {
         paginator_action action = component_id_to_action(event.custom_id);
-        // TODO: handle paa_exit and paa_jump
         switch (action)
         {
+        case paa_no_action:
+            break;
         case paa_forward:
             m_current_page_index++;
             break;
@@ -132,7 +133,6 @@ namespace dpp
         case paa_exit:
             exit_flag = true;
             break;
-        default: break;
         }
     }
 
@@ -159,8 +159,9 @@ namespace dpp
         switch (action)
         {
         case paa_forward:
-        case paa_skip_to_end:
             return m_current_page_index == max_page_index();
+        case paa_skip_to_end:
+            return max_page_index() <= 0 || m_current_page_index == max_page_index();
         case paa_backward:
         case paa_skip_to_start:
             return m_current_page_index == 0;
