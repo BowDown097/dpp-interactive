@@ -18,6 +18,7 @@ namespace dpp
 
     struct interactive_service_config
     {
+        std::chrono::seconds check_interval{1};
         std::chrono::seconds default_timeout{30};
     };
 
