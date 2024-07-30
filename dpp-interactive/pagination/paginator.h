@@ -33,8 +33,7 @@ namespace dpp
         paa_backward,
         paa_skip_to_end,
         paa_skip_to_start,
-        paa_exit,
-        paa_jump
+        paa_exit
     };
 
     enum paginator_footer
@@ -63,12 +62,14 @@ namespace dpp
         virtual void handle_button_click(const button_click_t& event);
         virtual int max_page_index() const = 0;
 
+        static paginator_action component_id_to_action(std::string_view id);
         int current_page_index() const;
         component get_component(bool disable_all) const;
-        static paginator_action id_to_action(std::string_view component_id);
         bool is_interactor(snowflake user_id) const;
         bool should_disable(paginator_action action, bool disable_all) const;
+        bool should_exit() const;
     protected:
+        bool exit_flag{};
         paginator_footer footer = paf_page_number;
         std::vector<std::pair<const char*, paginator_action>> options;
         int start_page_index{};

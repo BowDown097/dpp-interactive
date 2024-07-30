@@ -113,7 +113,7 @@ namespace dpp
 
     void paginator::handle_button_click(const button_click_t& event)
     {
-        paginator_action action = id_to_action(event.custom_id);
+        paginator_action action = component_id_to_action(event.custom_id);
         // TODO: handle paa_exit and paa_jump
         switch (action)
         {
@@ -129,17 +129,19 @@ namespace dpp
         case paa_skip_to_start:
             m_current_page_index = start_page_index;
             break;
+        case paa_exit:
+            exit_flag = true;
+            break;
         default: break;
         }
     }
 
-    paginator_action paginator::id_to_action(std::string_view component_id)
+    paginator_action paginator::component_id_to_action(std::string_view id)
     {
         uint8_t action_num{};
-        auto [_, err] = std::from_chars(component_id.data(), component_id.data() + component_id.size(), action_num);
-        if (err != std::errc())
+        if (auto [_, err] = std::from_chars(id.data(), id.data() + id.size(), action_num); err != std::errc())
             throw std::logic_error("Failed to parse paginator_action from component ID - this should never happen!");
-        if (action_num > paa_jump)
+        if (action_num > paa_exit)
             throw std::out_of_range("Paginator component ID is greater than the max paginator_action - this should never happen!");
         return static_cast<paginator_action>(action_num);
     }
@@ -162,10 +164,13 @@ namespace dpp
         case paa_backward:
         case paa_skip_to_start:
             return m_current_page_index == 0;
-        case paa_jump:
-            return max_page_index() <= 0;
         default:
             return false;
         }
+    }
+
+    bool paginator::should_exit() const
+    {
+        return exit_flag;
     }
 }

@@ -24,7 +24,8 @@ namespace dpp
         {
             std::this_thread::sleep_for(std::chrono::seconds(1));
             std::erase_if(data_map, [](const auto& data_pair) {
-                return std::chrono::steady_clock::now() > data_pair.second.timeout_point;
+                return std::chrono::steady_clock::now() > data_pair.second.timeout_point ||
+                       data_pair.second.paginator->should_exit();
             });
         }
     }
