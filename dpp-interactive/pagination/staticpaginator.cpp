@@ -16,12 +16,7 @@ namespace dpp
         return *this;
     }
 
-    embed static_paginator::embed_for(int page_index)
-    {
-        return gen_page_embed(pages.at(page_index));
-    }
-
-    interaction_page static_paginator::get_or_load_page(int page_index) const
+    interaction_page static_paginator::get_or_load_page(int page_index)
     {
         return pages.at(page_index);
     }

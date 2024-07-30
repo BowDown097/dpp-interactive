@@ -63,6 +63,12 @@ namespace dpp
         return m_current_page_index;
     }
 
+    embed paginator::embed_for(int page_index)
+    {
+        interaction_page p = get_or_load_page(page_index);
+        return gen_page_embed(p);
+    }
+
     embed paginator::gen_page_embed(interaction_page& page)
     {
         if (footer & paf_users)
@@ -73,7 +79,7 @@ namespace dpp
             std::vector<const dpp::user*> user_objs_vec(user_objs.begin(), user_objs.end());
             page.set_paginator_footer(footer, current_page_index(), max_page_index(), user_objs_vec);
         }
-        else
+        else if (max_page_index() > 0)
         {
             page.set_paginator_footer(footer, current_page_index(), max_page_index());
         }
@@ -100,7 +106,7 @@ namespace dpp
         return out;
     }
 
-    interaction_page paginator::get_or_load_current_page() const
+    interaction_page paginator::get_or_load_current_page()
     {
         return get_or_load_page(m_current_page_index);
     }
@@ -157,7 +163,7 @@ namespace dpp
         case paa_skip_to_start:
             return m_current_page_index == 0;
         case paa_jump:
-            return max_page_index() == 0;
+            return max_page_index() <= 0;
         default:
             return false;
         }

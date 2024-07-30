@@ -1,19 +1,18 @@
 #pragma once
 #include <set>
 #include <span>
-#include <string_view>
-#include <vector>
+#include <dpp/snowflake.h>
 
 #define DEFAULT_PAGINATOR_OVERRIDES(paginator_type) \
     paginator_type& set_footer(dpp::paginator_footer f) final \
     { dpp::paginator::set_footer(f); return *this; } \
     paginator_type& set_start_page_index(int index) final \
     { dpp::paginator::set_start_page_index(index); return *this; } \
-    paginator_type& set_users(std::span<const snowflake> user_ids) final \
+    paginator_type& set_users(std::span<const dpp::snowflake> user_ids) final \
     { dpp::paginator::set_users(user_ids); return *this; } \
-    paginator_type& add_user(snowflake user_id) final \
+    paginator_type& add_user(dpp::snowflake user_id) final \
     { dpp::paginator::add_user(user_id); return *this; } \
-    paginator_type& set_options(std::span<std::pair<const char*, paginator_action>> opts) final \
+    paginator_type& set_options(std::span<std::pair<const char*, dpp::paginator_action>> opts) final \
     { dpp::paginator::set_options(opts); return *this; } \
     paginator_type& add_option(const char* emote, dpp::paginator_action action) final \
     { dpp::paginator::add_option(emote, action); return *this; } \
@@ -26,7 +25,6 @@ namespace dpp
     class component;
     class embed;
     class interaction_page;
-    class snowflake;
 
     enum paginator_action
     {
@@ -59,9 +57,9 @@ namespace dpp
         virtual paginator& add_option(const char* emote, paginator_action action);
         virtual paginator& with_default_buttons();
 
-        virtual embed embed_for(int page_index) = 0;
-        virtual interaction_page get_or_load_current_page() const;
-        virtual interaction_page get_or_load_page(int page_index) const = 0;
+        virtual embed embed_for(int page_index);
+        virtual interaction_page get_or_load_current_page();
+        virtual interaction_page get_or_load_page(int page_index) = 0;
         virtual void handle_button_click(const button_click_t& event);
         virtual int max_page_index() const = 0;
 
