@@ -52,7 +52,6 @@ namespace dpp
             data.timeout_point = std::chrono::steady_clock::now() + data.timeout_secs;
     }
 
-#ifdef DPP_CORO
     void interactive_service::handle_message_create(const message_create_t& event)
     {
         for (entity_filter_data_base* filter : entity_filters)
@@ -68,7 +67,6 @@ namespace dpp
             }
         }
     }
-#endif
 
     message interactive_service::message_for(paginator* paginator, snowflake channel_id)
     {
