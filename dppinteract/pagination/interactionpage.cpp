@@ -3,29 +3,29 @@
 #include <dpp/utility.h>
 #include <format>
 
-namespace dpp
+namespace dppinteract
 {
     interaction_page& interaction_page::set_title(std::string_view text)
     {
-        title = utility::utf8substr(text, 0, 256);
+        title = dpp::utility::utf8substr(text, 0, 256);
         return *this;
     }
 
     interaction_page& interaction_page::set_description(std::string_view text)
     {
-        description = utility::utf8substr(text, 0, 4096);
+        description = dpp::utility::utf8substr(text, 0, 4096);
         return *this;
     }
 
-    interaction_page& interaction_page::set_footer(const embed_footer& f)
+    interaction_page& interaction_page::set_footer(const dpp::embed_footer& f)
     {
-        footer = std::make_shared<embed_footer>(f);
+        footer = std::make_shared<dpp::embed_footer>(f);
         return *this;
     }
 
     interaction_page& interaction_page::set_footer(std::string_view text, std::string_view icon_url)
     {
-        footer = std::make_shared<embed_footer>();
+        footer = std::make_shared<dpp::embed_footer>();
         footer->set_text(std::string(text));
         footer->set_icon(std::string(icon_url));
         return *this;
@@ -54,9 +54,9 @@ namespace dpp
     {
         if (fields.size() < 25)
         {
-            fields.push_back(embed_field {
-                .name = utility::utf8substr(name, 0, 256),
-                .value = utility::utf8substr(value, 0, 1024),
+            fields.push_back(dpp::embed_field {
+                .name = dpp::utility::utf8substr(name, 0, 256),
+                .value = dpp::utility::utf8substr(value, 0, 1024),
                 .is_inline = is_inline
             });
         }
@@ -64,16 +64,16 @@ namespace dpp
         return *this;
     }
 
-    interaction_page& interaction_page::set_author(const embed_author& a)
+    interaction_page& interaction_page::set_author(const dpp::embed_author& a)
     {
-        author = std::make_shared<embed_author>(a);
+        author = std::make_shared<dpp::embed_author>(a);
         return *this;
     }
 
     interaction_page& interaction_page::set_author(std::string_view name, std::string_view url, std::string_view icon_url)
     {
-        author = std::make_shared<embed_author>(embed_author {
-            .name = utility::utf8substr(name, 0, 256),
+        author = std::make_shared<dpp::embed_author>(dpp::embed_author {
+            .name = dpp::utility::utf8substr(name, 0, 256),
             .url = std::string(url),
             .icon_url = std::string(icon_url)
         });
@@ -82,26 +82,26 @@ namespace dpp
 
     interaction_page& interaction_page::set_image(std::string_view url)
     {
-        image = std::make_shared<embed_image>(embed_image { .url = std::string(url) });
+        image = std::make_shared<dpp::embed_image>(dpp::embed_image { .url = std::string(url) });
         return *this;
     }
 
     interaction_page& interaction_page::set_video(std::string_view url)
     {
-        video = std::make_shared<embed_image>(embed_image { .url = std::string(url) });
+        video = std::make_shared<dpp::embed_image>(dpp::embed_image { .url = std::string(url) });
         return *this;
     }
 
     interaction_page& interaction_page::set_thumbnail(std::string_view url)
     {
-        thumbnail = std::make_shared<embed_image>(embed_image { .url = std::string(url) });
+        thumbnail = std::make_shared<dpp::embed_image>(dpp::embed_image { .url = std::string(url) });
         return *this;
     }
 
     interaction_page& interaction_page::set_paginator_footer(paginator_footer f, int current_page_index,
-                                                             int max_page_index, std::span<const user*> users)
+                                                             int max_page_index, std::span<const dpp::user*> users)
     {
-        footer = std::make_shared<embed_footer>();
+        footer = std::make_shared<dpp::embed_footer>();
 
         if (f & paf_users)
         {
@@ -135,9 +135,9 @@ namespace dpp
         return *this;
     }
 
-    embed interaction_page::to_embed() const
+    dpp::embed interaction_page::to_embed() const
     {
-        embed out = embed()
+        dpp::embed out = dpp::embed()
             .set_description(description)
             .set_timestamp(timestamp)
             .set_title(title)

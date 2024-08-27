@@ -1,30 +1,30 @@
-add_library(dpp-interactive)
+add_library(dppinteract)
 
-set_target_properties(dpp-interactive
+set_target_properties(dppinteract
     PROPERTIES
         CXX_STANDARD 20
         CXX_STANDARD_REQUIRED ON)
 
 option(USE_COROUTINES "Use DPP coroutine support. Needed for coroutine next_* functions." OFF)
 if(USE_COROUTINES)
-    target_compile_definitions(dpp-interactive PUBLIC DPP_CORO)
+    target_compile_definitions(dppinteract PUBLIC DPP_CORO)
 endif()
 
-target_sources(dpp-interactive
+target_sources(dppinteract
     PRIVATE
-        dpp-interactive/interactiveservice.cpp
-        dpp-interactive/pagination/interactionpage.cpp
-        dpp-interactive/pagination/paginator.cpp
-        dpp-interactive/pagination/staticpaginator.cpp
+	dppinteract/interactiveservice.cpp
+	dppinteract/pagination/interactionpage.cpp
+	dppinteract/pagination/paginator.cpp
+	dppinteract/pagination/staticpaginator.cpp
     PUBLIC
         FILE_SET HEADERS FILES
-            dpp-interactive/entityfilterdata.h
-            dpp-interactive/interactivedata.h
-            dpp-interactive/interactiveresult.h
-            dpp-interactive/interactiveservice.h
-            dpp-interactive/pagination/interactionpage.h
-            dpp-interactive/pagination/paginator.h
-            dpp-interactive/pagination/staticpaginator.h)
+	    dppinteract/entityfilterdata.h
+	    dppinteract/interactivedata.h
+	    dppinteract/interactiveresult.h
+	    dppinteract/interactiveservice.h
+	    dppinteract/pagination/interactionpage.h
+	    dppinteract/pagination/paginator.h
+	    dppinteract/pagination/staticpaginator.h)
 
 find_package(DPP REQUIRED)
-target_link_libraries(dpp-interactive PUBLIC dpp::dpp)
+target_link_libraries(dppinteract PUBLIC dpp::dpp)

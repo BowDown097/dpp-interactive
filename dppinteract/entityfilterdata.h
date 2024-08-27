@@ -2,7 +2,7 @@
 #include <condition_variable>
 #include <functional>
 
-namespace dpp
+namespace dppinteract
 {
     struct entity_filter_callback_base
     {

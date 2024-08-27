@@ -7,7 +7,7 @@
 #include <dpp/snowflake.h>
 #include <dpp/unicode_emoji.h>
 
-namespace dpp
+namespace dppinteract
 {
     paginator& paginator::set_footer(paginator_footer f)
     {
@@ -21,13 +21,13 @@ namespace dpp
         return *this;
     }
 
-    paginator& paginator::set_users(std::span<const snowflake> user_ids)
+    paginator& paginator::set_users(std::span<const dpp::snowflake> user_ids)
     {
         this->user_ids.insert(user_ids.begin(), user_ids.end());
         return *this;
     }
 
-    paginator& paginator::add_user(snowflake user_id)
+    paginator& paginator::add_user(dpp::snowflake user_id)
     {
         user_ids.insert(user_id);
         return *this;
@@ -49,11 +49,11 @@ namespace dpp
     {
         options.clear();
 
-        add_option(unicode_emoji::left_arrow, paa_backward);
-        add_option(unicode_emoji::right_arrow, paa_forward);
-        add_option(unicode_emoji::previous_track, paa_skip_to_start);
-        add_option(unicode_emoji::next_track, paa_skip_to_end);
-        add_option(unicode_emoji::stop_sign, paa_exit);
+        add_option(dpp::unicode_emoji::left_arrow, paa_backward);
+        add_option(dpp::unicode_emoji::right_arrow, paa_forward);
+        add_option(dpp::unicode_emoji::previous_track, paa_skip_to_start);
+        add_option(dpp::unicode_emoji::next_track, paa_skip_to_end);
+        add_option(dpp::unicode_emoji::stop_sign, paa_exit);
 
         return *this;
     }
@@ -63,18 +63,18 @@ namespace dpp
         return m_current_page_index;
     }
 
-    embed paginator::embed_for(int page_index)
+    dpp::embed paginator::embed_for(int page_index)
     {
         interaction_page p = get_or_load_page(page_index);
         return gen_page_embed(p);
     }
 
-    embed paginator::gen_page_embed(interaction_page& page)
+    dpp::embed paginator::gen_page_embed(interaction_page& page)
     {
         if (footer & paf_users)
         {
             auto user_objs = user_ids
-                | std::views::transform([](snowflake user_id) { return dpp::find_user(user_id); })
+                | std::views::transform([](dpp::snowflake user_id) { return dpp::find_user(user_id); })
                 | std::views::filter([](const dpp::user* user) { return user != nullptr; });
             std::vector<const dpp::user*> user_objs_vec(user_objs.begin(), user_objs.end());
             page.set_paginator_footer(footer, current_page_index(), max_page_index(), user_objs_vec);
@@ -87,17 +87,17 @@ namespace dpp
         return page.to_embed();
     }
 
-    component paginator::get_component(bool disable_all) const
+    dpp::component paginator::get_component(bool disable_all) const
     {
-        component out;
+        dpp::component out;
 
         for (const auto& [emote, action] : options)
         {
             out.add_component(
-                component()
-                    .set_type(cot_button)
+                dpp::component()
+                    .set_type(dpp::cot_button)
                     .set_emoji(emote)
-                    .set_style(action == paa_exit ? cos_danger : cos_primary)
+                    .set_style(action == paa_exit ? dpp::cos_danger : dpp::cos_primary)
                     .set_id(std::to_string(action))
                     .set_disabled(should_disable(action, disable_all))
             );
@@ -111,7 +111,7 @@ namespace dpp
         return get_or_load_page(m_current_page_index);
     }
 
-    void paginator::handle_button_click(const button_click_t& event)
+    void paginator::handle_button_click(const dpp::button_click_t& event)
     {
         paginator_action action = component_id_to_action(event.custom_id);
         switch (action)
@@ -146,7 +146,7 @@ namespace dpp
         return static_cast<paginator_action>(action_num);
     }
 
-    bool paginator::is_interactor(snowflake user_id) const
+    bool paginator::is_interactor(dpp::snowflake user_id) const
     {
         return user_ids.contains(user_id);
     }

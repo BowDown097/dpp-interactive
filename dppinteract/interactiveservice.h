@@ -9,14 +9,11 @@
 #include <dpp/coro/async.h>
 #endif
 
+namespace dpp { class cluster; class message; class message_create_t; }
 namespace std { class jthread; class stop_token; }
 
-namespace dpp
+namespace dppinteract
 {
-    class cluster;
-    class message;
-    class message_create_t;
-
     struct interactive_service_config
     {
         std::chrono::seconds check_interval{1};
@@ -32,19 +29,19 @@ namespace dpp
         using filter_function = std::function<bool(const T&)>;
 
         explicit interactive_service(interactive_service_config config = {});
-        void handle_button_click(const button_click_t& event);
-        void send_paginator(std::unique_ptr<paginator> paginator, const message_create_t& event,
+        void handle_button_click(const dpp::button_click_t& event);
+        void send_paginator(std::unique_ptr<paginator> paginator, const dpp::message_create_t& event,
                             bool reset_timeout_on_input = false, std::chrono::seconds timeout = {});
-        void setup_event_handlers(cluster* cluster);
+        void setup_event_handlers(dpp::cluster* cluster);
 
-        void handle_message_create(const message_create_t& event);
+        void handle_message_create(const dpp::message_create_t& event);
 
-        void next_message(filter_function<message> filter, callback_function<message> callback,
+        void next_message(filter_function<dpp::message> filter, callback_function<dpp::message> callback,
                           std::chrono::seconds timeout = {})
         { next_entity(std::move(filter), std::move(callback), timeout); }
 
 #ifdef DPP_CORO
-        decltype(auto) next_message(filter_function<message> filter, std::chrono::seconds timeout = {})
+        decltype(auto) next_message(filter_function<dpp::message> filter, std::chrono::seconds timeout = {})
         { return next_entity(std::move(filter), timeout); }
 #endif
     private:
@@ -54,7 +51,7 @@ namespace dpp
         std::vector<entity_filter_data_base*> entity_filters;
 
         void check_data_map(std::stop_token stopToken);
-        message message_for(paginator* paginator, snowflake channel_id);
+        dpp::message message_for(paginator* paginator, dpp::snowflake channel_id);
 
         template<class T>
         void next_entity(filter_function<T> filter, auto&& cb, std::chrono::seconds timeout = {})
@@ -67,7 +64,7 @@ namespace dpp
 
 #ifdef DPP_CORO
         template<class T>
-        async<interactive_result<T>> next_entity(filter_function<T> filter, std::chrono::seconds timeout = {})
+        dpp::async<interactive_result<T>> next_entity(filter_function<T> filter, std::chrono::seconds timeout = {})
         {
             return dpp::async<interactive_result<T>>([this, filter = std::move(filter), timeout](auto&& cb) {
                 next_entity(std::move(filter), std::forward<decltype(cb)>(cb), timeout);

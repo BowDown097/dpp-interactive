@@ -2,7 +2,7 @@
 #include <dpp/cache.h>
 #include <dpp/message.h>
 
-namespace dpp
+namespace dppinteract
 {
     static_paginator& static_paginator::set_pages(std::span<const interaction_page> pages)
     {

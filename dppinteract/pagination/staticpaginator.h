@@ -2,7 +2,7 @@
 #include "interactionpage.h"
 #include "paginator.h"
 
-namespace dpp
+namespace dppinteract
 {
     class static_paginator final : public paginator
     {

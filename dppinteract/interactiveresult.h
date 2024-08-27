@@ -1,6 +1,6 @@
 #pragma once
 
-namespace dpp
+namespace dppinteract
 {
     enum class interactive_status { Unknown, Success, Timeout };
 
